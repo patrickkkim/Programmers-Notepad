@@ -2,8 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QPlainTextEdit
 from Geometry import Location
 from FileManipulate import Action
-from DirectoryAction import SaveAs, Open
-from FindAction import Find
+from PopupAction import SaveAs, Open, Find
 from ScreenHandler import Core
 
 class CustomTextEditor(QMainWindow):

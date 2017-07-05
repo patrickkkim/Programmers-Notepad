@@ -7,11 +7,14 @@ from ScreenHandler import Core
 """ Viewer has two layouts: hBox and vBox. hBox for horizontal layouts and vBox for vertical layouts.
 	Also has a QTreeView set with model.
 """
-class DirectoryViewer(QDialog):
-	def __init__(self):
-		super(DirectoryViewer, self).__init__()
+class Popup(QDialog):
+	def __init__(self, title, width, height):
+		super(Popup, self).__init__()
 
-		self.title = ""
+		self.title = title
+		self.width = width
+		self.height = height
+
 		self.initUI()
 		self.exec_()
 
@@ -22,15 +25,15 @@ class DirectoryViewer(QDialog):
 		self.vBox = QVBoxLayout()
 
 		self.setWindowTitle(self.title)
-		self.resize(850, 600)
+		self.resize(self.width, self.height)
 		Core.setMainWin(self)
-		self.winLocation.moveToTopLeft()
+		self.winLocation.moveToCenter()
 		Core.restoreMainWin()
 
-		self.initDirUI()
 		self.setLayout(self.vBox)
 
 	def initDirUI(self):
+		Core.directory = Core.defaultDir
 		self.model = QFileSystemModel()
 		self.tree = QTreeView()
 
@@ -45,9 +48,9 @@ class DirectoryViewer(QDialog):
 		self.selectedDir = self.tree.selectionModel().model().filePath(index)
 		self.selectedTitle = self.tree.selectionModel().model().fileName(index)
 
-class SaveAs(DirectoryViewer):
+class SaveAs(Popup):
 	def __init__(self):
-		super(SaveAs, self).__init__()
+		super(SaveAs, self).__init__("Save file as", 800, 500)
 
 	def initDirUI(self):
 		super(SaveAs, self).initDirUI()
@@ -60,7 +63,7 @@ class SaveAs(DirectoryViewer):
 		cancelBtn = QPushButton("Cancel")
 
 		self.saveNameEdit.setText(Core.title)
-		saveBtn.clicked.connect(lambda func: self.setTitle(self.saveNameEdit.text()))
+
 		saveBtn.clicked.connect(lambda func: Core.setMainWin(self))
 		saveBtn.clicked.connect(self.setDirSelected)
 		saveBtn.clicked.connect(Core.restoreMainWin)
@@ -73,12 +76,12 @@ class SaveAs(DirectoryViewer):
 		self.hBox.addWidget(saveBtn)
 		self.hBox.addWidget(cancelBtn)
 
-		self.vBox.addWidget(self.tree)
+		self.vBox.addWidget(self.tree) 
 		self.vBox.addLayout(self.hBox)
 
 	def initUI(self):
-		self.title = "Save File As"
 		super(SaveAs, self).initUI()
+		self.initDirUI()
 
 	def setSelection(self, index):
 		super(SaveAs, self).setSelection(index)
@@ -87,16 +90,19 @@ class SaveAs(DirectoryViewer):
 
 	def setDirSelected(self):
 		dir = self.selectedDir
+
 		if os.path.isdir(dir):
 			Core.directory = dir
-			self.action.save()
-			self.action.close()
 		else:
 			Core.directory = dir[0 : dir.rfind("/")]
 
-class Open(DirectoryViewer):
+		Core.title = self.saveNameEdit.text()
+		self.action.save()
+		self.action.close()
+
+class Open(Popup):
 	def __init__(self):
-		super(Open, self).__init__()
+		super(Open, self).__init__("Open file", 800, 500)
 
 	def initDirUI(self):
 		super(Open, self).initDirUI()
@@ -121,8 +127,8 @@ class Open(DirectoryViewer):
 		self.vBox.addLayout(self.hBox)
 
 	def initUI(self):
-		self.title = "Open File"
 		super(Open, self).initUI()
+		self.initDirUI()
 
 	def setDirSelected(self):
 		dir = self.selectedDir
@@ -137,3 +143,27 @@ class Open(DirectoryViewer):
 			Core.title = self.selectedTitle
 			self.action.open()
 			self.action.close()
+
+class Find(Popup):
+	def __init__(self):
+		super(Find, self).__init__("Find", 500, 50)
+
+	def initUI(self):
+		super(Find, self).initUI()
+		
+		findLabel = QLabel("Find with")
+		findEdit = QLineEdit()
+		findBtn = QPushButton("Find")
+		cancelBtn = QPushButton("Cancel")
+
+		findBtn.clicked.connect(lambda func: self.action.find(findEdit.text()))
+		cancelBtn.clicked.connect(lambda fucn: Core.setMainWin(self))
+		cancelBtn.clicked.connect(self.action.close)
+		cancelBtn.clicked.connect(Core.restoreMainWin)
+
+		self.hBox.addWidget(findLabel)
+		self.hBox.addWidget(findEdit)
+		self.hBox.addWidget(findBtn)
+		self.hBox.addWidget(cancelBtn)
+
+		self.vBox.addLayout(self.hBox)

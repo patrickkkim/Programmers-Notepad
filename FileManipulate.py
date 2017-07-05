@@ -7,13 +7,13 @@ from ScreenHandler import Core
 class Action(object):
 	def quit(self):
 		quitMsg = "Are you sure?"
-		reply = QMessageBox.question(self.mainWindow, 'Message', quitMsg, QMessageBox.Yes, QMessageBox.No)
+		reply = QMessageBox.question(Core.mainWindow, 'Message', quitMsg, QMessageBox.Yes, QMessageBox.No)
 
 		if reply == QMessageBox.Yes:
 			QCoreApplication.exit()
 
 	def close(self):
-		self.mainWindow.close()
+		Core.mainWindow.close()
 
 	def save(self):
 		text = Core.textBox.toPlainText()
