@@ -2,7 +2,7 @@ import os
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QPushButton, QFileSystemModel, QTreeView, QHBoxLayout, QVBoxLayout
 from Geometry import Location
 from FileManipulate import Action
-from ScreenHandler import Core
+from FileHandler import Core
 
 """ Viewer has two layouts: hBox and vBox. hBox for horizontal layouts and vBox for vertical layouts.
 	Also has a QTreeView set with model.
@@ -41,6 +41,9 @@ class Popup(QDialog):
 		self.tree.setModel(self.model)
 		self.tree.setColumnWidth(0, 450)
 
+		self.tree.setRootIndex(self.model.index(Core.defaultDir))
+		self.tree.selectionModel().currentChanged.connect(self.setSelection)
+
 	def setTitle(self, title):
 		Core.title = title
 
@@ -54,8 +57,6 @@ class SaveAs(Popup):
 
 	def initDirUI(self):
 		super(SaveAs, self).initDirUI()
-		self.tree.setRootIndex(self.model.index(Core.defaultDir))
-		self.tree.selectionModel().currentChanged.connect(self.setSelection)
 
 		saveName = QLabel("Filename")
 		self.saveNameEdit = QLineEdit()
@@ -106,8 +107,6 @@ class Open(Popup):
 
 	def initDirUI(self):
 		super(Open, self).initDirUI()
-		self.tree.setRootIndex(self.model.index(Core.defaultDir))
-		self.tree.selectionModel().currentChanged.connect(self.setSelection)
 
 		openBtn = QPushButton("Open")
 		cancelBtn = QPushButton("Cancel")
@@ -143,6 +142,44 @@ class Open(Popup):
 			Core.title = self.selectedTitle
 			self.action.open()
 			self.action.close()
+
+class SetDefaultDir(Popup):
+	def __init__(self):
+		super(self.__class__, self).__init__("Set Default Directory", 800, 500)
+
+	def initDirUI(self):
+		super(self.__class__, self).initDirUI()
+
+		setBtn = QPushButton("Set")
+		cancelBtn = QPushButton("Cancel")
+
+		setBtn.clicked.connect(lambda func: Core.setMainWin(self))
+		setBtn.clicked.connect(self.setDirSelected)
+		setBtn.clicked.connect(Core.restoreMainWin)
+		setBtn.clicked.connect(lambda func: self.setTitle(Core.title))
+		cancelBtn.clicked.connect(lambda func: Core.setMainWin(self))
+		cancelBtn.clicked.connect(self.action.close)
+		cancelBtn.clicked.connect(Core.restoreMainWin)
+
+		self.hBox.addWidget(setBtn)
+		self.hBox.addWidget(cancelBtn)
+
+		self.vBox.addWidget(self.tree)
+		self.vBox.addLayout(self.hBox)
+
+	def initUI(self):
+		super(self.__class__, self).initUI()
+		self.initDirUI()
+
+	def setDirSelected(self):
+		dir = self.selectedDir
+
+		if os.path.isdir(dir):
+			Core.defaultDir = dir
+		else:
+			Core.defaultDir = dir[0 : dir.rfind("/")]
+
+		self.action.close()
 
 class Find(Popup):
 	def __init__(self):

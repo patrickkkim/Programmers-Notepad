@@ -2,20 +2,21 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QPlainTextEdit
 from Geometry import Location
 from FileManipulate import Action
-from PopupAction import SaveAs, Open, Find
-from ScreenHandler import Core
+from PopupAction import SaveAs, Open, SetDefaultDir, Find
+from FileHandler import Core
+from Configure import SetConf
 
 class CustomTextEditor(QMainWindow):
 	def __init__(self):
 		super(self.__class__, self).__init__()
+		self.conf = SetConf()
+		self.conf.call()
 		Core.title = "untitled"
-		Core.defaultDir = "/home/patkim/Documents/"
 		Core.directory = Core.defaultDir
 		Core.mainWindow = self
 
 		self.initUI()
 
-	# Initializes the main UI.
 	def initUI(self):
 		self.winLocation = Location()
 
@@ -26,13 +27,12 @@ class CustomTextEditor(QMainWindow):
 		self.initAction()
 		self.addMenu()
 
-	# Generates a text box
 	def initTextBox(self):
 		Core.textBox = QPlainTextEdit()
 		Core.textBox.resize(self.size())
 		self.setCentralWidget(Core.textBox)
 
-	# Generates actions for menu bar.
+	# Create actions for menu bar.
 	def initAction(self):
 		self.action = Action()
 
@@ -52,19 +52,29 @@ class CustomTextEditor(QMainWindow):
 		self.openAction.setShortcut("Ctrl+O")
 		self.openAction.triggered.connect(Open)
 
+		self.setDefaultDirAction = QAction("Set Directory", self)
+		self.setDefaultDirAction.triggered.connect(SetDefaultDir)
+		self.setDefaultDirAction.triggered.connect(self.conf.save)
+
 		self.findAction = QAction("Find", self)
 		self.findAction.setShortcut("Ctrl+F")
 		self.findAction.triggered.connect(Find)
 
-	# Generates a menu bar and adds actions accordingly.
+	# Add a menu bar and connects actions appropriately.
 	def addMenu(self):
 		self.menuBar = self.menuBar()
-		fileMenu = self.menuBar.addMenu('&File')
+		fileMenu = self.menuBar.addMenu("File")
+		editMenu = self.menuBar.addMenu("Edit")
+
+		# Define file menu actions
 		fileMenu.addAction(self.quitAction)
 		fileMenu.addAction(self.saveAction)
 		fileMenu.addAction(self.saveAsAction)
 		fileMenu.addAction(self.openAction)
-		fileMenu.addAction(self.findAction)
+		fileMenu.addAction(self.setDefaultDirAction)
+
+		# Define edit menu actions
+		editMenu.addAction(self.findAction)
 
 	def isFileSavedEvent(self):
 		if Core.title == "untitled":

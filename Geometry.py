@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDesktopWidget
-from ScreenHandler import Core
+from FileHandler import Core
 
 class Location(object):
 
